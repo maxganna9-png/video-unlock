@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ভিডিও আনলক</title>
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Adsgram SDK -->
+  <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+  <style>
+    body {
+      background-color: #17212b;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .box {
+      background: #242f3d;
+      padding: 30px 20px;
+      border-radius: 14px;
+      border: 1px solid #2b5278;
+      max-width: 400px;
+      width: 100%;
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+    p {
+      color: #9ab3c9;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    button {
+      background-color: #2481cc;
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 15px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <h2>🎬 ভিডিওটি লক করা আছে</h2>
+    <p>ভিডিওটি পেতে নিচের বাটনে ক্লিক করে ছোট একটি এড সম্পূর্ণ দেখুন। এড শেষ হলে ভিডিও ইনবক্সে পৌঁছে যাবে।</p>
+    <button onclick="watchAd()">🔓 এড দেখে ভিডিও আনলক করুন</button>
+  </div>
+
+  <script>
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+
+    // URL থেকে ফাইলের আইডি নেওয়া
+    const urlParams = new URLSearchParams(window.location.search);
+    const fileId = urlParams.get('file');
+
+    // Adsgram ব্লক আইডি (নিচে আপনার Block ID দিন)
+    const AdController = window.Adsgram.init({ blockId: "286" });
+
+    function watchAd() {
+      AdController.show().then((result) => {
+        // এড দেখা শেষ হলে বটের কাছে ফেরত যাবে
+        // নিচে YOUR_BOT_USERNAME এর জায়গায় @ ছাড়া আপনার বটের ইউজারনেম দিন
+        const botUsername = "myvideostorage1_bot";
+        
+        window.Telegram.WebApp.openTelegramLink(`https://t.me/${botUsername}?start=unlock_${fileId}`);
+      }).catch((result) => {
+        alert("ভিডিও আনলক করতে এড সম্পূর্ণ দেখা বাধ্যতামূলক!");
+      });
+    }
+  </script>
+</body>
+</html>
