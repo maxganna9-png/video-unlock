@@ -58,7 +58,7 @@
 
   <div class="box">
     <h2>🎬 Video is Locked</h2>
-    <p>To watch this video, click the button below and watch a short ad completely. Once finished, the video will be delivered to your inbox.</p>
+    <p>To watch this video, please click the button below and watch a short ad completely. Once finished, the video will be delivered to your inbox.</p>
     <button onclick="watchAd()">🔓 Watch Ad to Unlock Video</button>
   </div>
 
@@ -69,10 +69,10 @@
     const urlParams = new URLSearchParams(window.location.search);
     const fileId = urlParams.get('file');
 
-    // Adsgram Block ID: 51341
+    // Adsgram Block ID: 51341 with debug: true for instant Test Ad
     const AdController = window.Adsgram.init({ 
-      blockId: "51341" 
-      debug: true
+      blockId: "51341", 
+      debug: true 
     });
 
     function watchAd() {
@@ -80,7 +80,8 @@
         const botUsername = "myvideostorage1_bot";
         window.Telegram.WebApp.openTelegramLink(`https://t.me/${botUsername}?start=unlock_${fileId}`);
       }).catch((result) => {
-        alert("You must watch the full ad to unlock the video!");
+        // কোনো সমস্যা হলে বা এড কেটে দিলে কারণ দেখিয়ে দেবে
+        alert("Alert: " + (result.description || "You must watch the full ad to unlock the video!"));
       });
     }
   </script>
