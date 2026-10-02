@@ -6,8 +6,6 @@
   <title>Unlock Video</title>
   <!-- Telegram Web App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- Adsgram SDK -->
-  <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
   <style>
     body {
       background-color: #17212b;
@@ -52,14 +50,32 @@
       margin-top: 15px;
       width: 100%;
     }
+    #timer-box {
+      display: none;
+      margin-top: 20px;
+      padding: 15px;
+      background: #17212b;
+      border-radius: 8px;
+      border: 1px dashed #2481cc;
+    }
+    .timer-text {
+      color: #f39c12;
+      font-weight: bold;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
 
   <div class="box">
     <h2>🎬 Video is Locked</h2>
-    <p>To watch this video, please click the button below and watch a short ad completely. Once finished, the video will be delivered to your inbox.</p>
-    <button onclick="watchAd()">🔓 Watch Ad to Unlock Video</button>
+    <p>To watch this video, please click the button below and view the sponsored ad. The video will be sent to your inbox automatically.</p>
+    
+    <button id="unlock-btn" onclick="startMonetagAd()">🔓 Watch Ad to Unlock Video</button>
+
+    <div id="timer-box">
+      <p class="timer-text" id="countdown-text">Ad Opened! Unlocking video in 5s...</p>
+    </div>
   </div>
 
   <script>
@@ -69,25 +85,40 @@
     const urlParams = new URLSearchParams(window.location.search);
     const fileId = urlParams.get('file');
 
-    // ইউজারের টেলিগ্রাম আইডি চেক করা
+    // আপনার Monetag Direct Link
+    const MONETAG_LINK = "https://omg10.com/4/11942237";
+    const botUsername = "myvideostorage1_bot";
+
+    // ডেভেলপার আইডি চেক (আপনার আইডি)
     const currentUserId = window.Telegram.WebApp.initDataUnsafe?.user?.id;
-    
-    // আপনার আইডি: 6645146172 (আপনি দেখলে টেস্ট এড, সাধারণ মানুষ দেখলে রিয়েল এড)
     const isDeveloper = (currentUserId === 6645146172);
 
-    // আপনার নতুন রিয়েল Block ID: 51471
-    const AdController = window.Adsgram.init({ 
-      blockId: "51471", 
-      debug: isDeveloper 
-    });
-
-    function watchAd() {
-      AdController.show().then((result) => {
-        const botUsername = "myvideostorage1_bot";
+    function startMonetagAd() {
+      // আপনি (ডেভেলপার) দেখলে কোনো এড লোড হবে না, সরাসরি আনলক হবে
+      if (isDeveloper) {
+        alert("Developer mode: Bypassing ad. Delivering video...");
         window.Telegram.WebApp.openTelegramLink(`https://t.me/${botUsername}?start=unlock_${fileId}`);
-      }).catch((result) => {
-        alert("Alert: " + (result.description || "You must watch the full ad to unlock the video!"));
-      });
+        return;
+      }
+
+      // সাধারণ দর্শকদের জন্য Monetag এড ওপেন হবে
+      window.Telegram.WebApp.openLink(MONETAG_LINK);
+
+      // টাইমার চালু হবে
+      document.getElementById('unlock-btn').style.display = 'none';
+      document.getElementById('timer-box').style.display = 'block';
+
+      let timeLeft = 5;
+      const timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('countdown-text').innerText = `Ad Opened! Unlocking video in ${timeLeft}s...`;
+
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          // সময় শেষ হলে স্বয়ংক্রিয়ভাবে বটে ফেরত গিয়ে ভিডিও আনলক করবে
+          window.Telegram.WebApp.openTelegramLink(`https://t.me/${botUsername}?start=unlock_${fileId}`);
+        }
+      }, 1000);
     }
   </script>
 </body>
