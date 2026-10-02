@@ -69,14 +69,15 @@
     const urlParams = new URLSearchParams(window.location.search);
     const fileId = urlParams.get('file');
 
-    // ইউজারের আইডি চেক করা
+    // ইউজারের টেলিগ্রাম আইডি চেক করা
     const currentUserId = window.Telegram.WebApp.initDataUnsafe?.user?.id;
     
     // আপনার আইডি: 6645146172 (আপনি দেখলে টেস্ট এড, সাধারণ মানুষ দেখলে রিয়েল এড)
     const isDeveloper = (currentUserId === 6645146172);
 
+    // আপনার নতুন রিয়েল Block ID: 51471
     const AdController = window.Adsgram.init({ 
-      blockId: "51341", 
+      blockId: "51471", 
       debug: isDeveloper 
     });
 
