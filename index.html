@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ভিডিও আনলক</title>
+  <title>Unlock Video</title>
   <!-- Telegram Web App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <!-- Adsgram SDK -->
@@ -31,6 +31,15 @@
       max-width: 400px;
       width: 100%;
     }
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+    p {
+      color: #9ab3c9;
+      font-size: 14px;
+      line-height: 1.5;
+    }
     button {
       background-color: #2481cc;
       color: white;
@@ -48,9 +57,9 @@
 <body>
 
   <div class="box">
-    <h2>🎬 ভিডিওটি লক করা আছে</h2>
-    <p>ভিডিওটি পেতে নিচের বাটনে ক্লিক করে এডটি সম্পূর্ণ দেখুন।</p>
-    <button onclick="watchAd()">🔓 এড দেখে ভিডিও আনলক করুন</button>
+    <h2>🎬 Video is Locked</h2>
+    <p>To watch this video, click the button below and watch a short ad completely. Once finished, the video will be delivered to your inbox.</p>
+    <button onclick="watchAd()">🔓 Watch Ad to Unlock Video</button>
   </div>
 
   <script>
@@ -60,19 +69,18 @@
     const urlParams = new URLSearchParams(window.location.search);
     const fileId = urlParams.get('file');
 
-    // আপনার আসল Block ID (51341) এবং টেস্টের জন্য debug: true
+    // Adsgram Block ID: 51341
     const AdController = window.Adsgram.init({ 
-      blockId: "51341", 
-      debug: true 
+      blockId: "51341" 
+      debug: true
     });
 
     function watchAd() {
       AdController.show().then((result) => {
-        // বটের ইউজারনেম
         const botUsername = "myvideostorage1_bot";
         window.Telegram.WebApp.openTelegramLink(`https://t.me/${botUsername}?start=unlock_${fileId}`);
       }).catch((result) => {
-        alert("ভিডিও আনলক করতে এড সম্পূর্ণ দেখা বাধ্যতামূলক!");
+        alert("You must watch the full ad to unlock the video!");
       });
     }
   </script>
