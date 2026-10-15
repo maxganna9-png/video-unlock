@@ -53,21 +53,12 @@
       background-color: #2481cc;
     }
     .btn-claim {
-      background-color: #27ae60; /* সবুজ বাটন */
+      background-color: #27ae60;
       display: none;
     }
-    #timer-box {
+    #status-box {
       display: none;
-      margin-top: 20px;
-      padding: 15px;
-      background: #17212b;
-      border-radius: 8px;
-      border: 1px dashed #2481cc;
-    }
-    .timer-text {
-      color: #f39c12;
-      font-weight: bold;
-      font-size: 16px;
+      margin-top: 15px;
     }
   </style>
 </head>
@@ -75,18 +66,16 @@
 
   <div class="box">
     <h2>🎬 Video is Locked</h2>
-    <p>Please click below and view the sponsored ad for at least 15 seconds to unlock your video.</p>
+    <p id="info-text">You must view the sponsored ad for at least 15 seconds to unlock your video.</p>
     
-    <!-- Step 1: এড দেখার বাটন -->
-    <button id="unlock-btn" class="btn-ad" onclick="startMonetagAd()">🔓 Watch Ad to Unlock Video (15s)</button>
+    <!-- বাটন: এড দেখার জন্য -->
+    <button id="unlock-btn" class="btn-ad" onclick="startMonetagAd()">🔓 Watch Ad to Unlock Video</button>
 
-    <!-- Step 2: ১৫ সেকেন্ডের টাইমার বক্স -->
-    <div id="timer-box">
-      <p class="timer-text" id="countdown-text">Ad Opened! Please wait 15s...</p>
-    </div>
+    <!-- স্ট্যাটাস এবং ওয়ার্নিং বক্স -->
+    <div id="status-box"></div>
 
-    <!-- Step 3: ১৫ সেকেন্ড পর প্রদর্শিত সবুজ বাটন -->
-    <button id="claim-btn" class="btn-claim" onclick="claimVideo()">✅ Get Your Video Now</button>
+    <!-- ভিডিও পাওয়ার সবুজ বাটন -->
+    <button id="claim-btn" class="btn-claim" onclick="claimVideo()">✅ Verified! Get Your Video Now</button>
   </div>
 
   <script>
@@ -99,44 +88,89 @@
     const MONETAG_LINK = "https://omg10.com/4/11942237";
     const botUsername = "myvideostorage1_bot";
 
-    // ডেভেলপার আইডি (আপনার জন্য টেস্ট বাইপাস)
+    // ডেভেলপার আইডি: আপনার আইডিটি এখানে ১০০% সুরক্ষিত রাখা হয়েছে
     const currentUserId = window.Telegram.WebApp.initDataUnsafe?.user?.id;
     const isDeveloper = (currentUserId === 6645146172);
 
-    const WAIT_SECONDS = 15; // পুরো ১৫ সেকেন্ড অপেক্ষা বাধ্যতামূলক
+    let adOpenedTime = null;
+    let isWatching = false;
 
     function startMonetagAd() {
-      // আপনি (ডেভেলপার) দেখলে সরাসরি ভিডিও যাবে
+      // আপনি (ডেভেলপার) দেখলে সরাসরি ভিডিও যাবে, কোনো এড লোড হবে না
       if (isDeveloper) {
         alert("Developer mode: Delivering video...");
         claimVideo();
         return;
       }
 
+      // এডে যাওয়ার আসল সময় রেকর্ড
+      adOpenedTime = Date.now();
+      isWatching = true;
+
       // Monetag এড ওপেন হবে
       window.Telegram.WebApp.openLink(MONETAG_LINK);
 
-      // বাটন লুকিয়ে টাইমার চালু হবে
+      // পেজে নোটিশ দেখানো
       document.getElementById('unlock-btn').style.display = 'none';
-      document.getElementById('timer-box').style.display = 'block';
-
-      // রিয়েল টাইম ট্র্যাকিং (যাতে ব্যাক করলেও সময় চুরি করতে না পারে)
-      const startTime = Date.now();
-
-      const timer = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        const timeLeft = Math.max(0, WAIT_SECONDS - elapsed);
-
-        if (timeLeft > 0) {
-          document.getElementById('countdown-text').innerText = `Verifying ad... Please wait ${timeLeft}s`;
-        } else {
-          clearInterval(timer);
-          // পুরো ১৫ সেকেন্ড শেষ হলে সবুজ বাটন সামনে আসবে
-          document.getElementById('timer-box').style.display = 'none';
-          document.getElementById('claim-btn').style.display = 'block';
-        }
-      }, 500);
+      const statusBox = document.getElementById('status-box');
+      statusBox.style.display = 'block';
+      statusBox.innerHTML = `
+        <div style="background: #2b527833; border: 1px dashed #2481cc; padding: 12px; border-radius: 8px;">
+          <p style="color: #f39c12; font-weight: bold; margin: 0;">
+            ⏳ Ad is open! Stay on the ad page for at least 15 seconds.<br>
+            <span style="font-size: 12px; color: #bbb;">Do NOT close or press back early!</span>
+          </p>
+        </div>
+      `;
     }
+
+    // ইউজার যখন এডের পেজ থেকে ব্যাক করে ফিরে আসবে
+    function onUserReturn() {
+      if (!isWatching || !adOpenedTime) return;
+
+      const timeSpent = Math.floor((Date.now() - adOpenedTime) / 1000);
+
+      // ইউজার যদি ১৫ সেকেন্ডের আগে ব্যাক করে ফেলে (ফাঁকিবাজি ধরা পড়লে)
+      if (timeSpent < 15) {
+        isWatching = false;
+        adOpenedTime = null;
+
+        const statusBox = document.getElementById('status-box');
+        statusBox.style.display = 'block';
+        statusBox.innerHTML = `
+          <div style="background: #e74c3c22; border: 1px solid #e74c3c; padding: 12px; border-radius: 8px;">
+            <p style="color: #e74c3c; font-weight: bold; margin: 0 0 6px 0;">
+              ❌ Ad Not Completed!
+            </p>
+            <p style="font-size: 13px; color: #ff9999; margin: 0;">
+              You stayed for only ${timeSpent}s. You must stay on the ad page for at least 15 seconds.
+            </p>
+          </div>
+        `;
+
+        // আবার চেষ্টা করার বাটন দেখাবে
+        const btn = document.getElementById('unlock-btn');
+        btn.innerText = "🔄 Watch Ad Again (15s Required)";
+        btn.style.display = "block";
+
+      } else {
+        // ইউজার সফলভাবে পুরো ১৫ সেকেন্ড এডের পেজে ছিল
+        isWatching = false;
+        document.getElementById('status-box').style.display = 'none';
+        document.getElementById('claim-btn').style.display = 'block';
+      }
+    }
+
+    // এডের পেজ থেকে ফিরে আসার সাথে সাথে সেন্সর চালু হওয়া
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        onUserReturn();
+      }
+    });
+
+    window.addEventListener("focus", () => {
+      onUserReturn();
+    });
 
     // ভিডিও নেওয়ার ফাংশন
     function claimVideo() {
