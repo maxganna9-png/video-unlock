@@ -2,31 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Unlock Video</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Secure Player</title>
   <!-- Telegram Web App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
+    /* ভিডিও সেভ, লং প্রেস ও সিলেক্ট বন্ধ করার সিএসএস */
+    * {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
     body {
-      background-color: #17212b;
+      background-color: #0e1621;
       color: white;
       font-family: Arial, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
       text-align: center;
-      padding: 20px;
+      padding: 15px;
       box-sizing: border-box;
     }
     .box {
-      background: #242f3d;
-      padding: 30px 20px;
+      background: #17212b;
+      padding: 25px 20px;
       border-radius: 14px;
       border: 1px solid #2b5278;
-      max-width: 400px;
+      max-width: 450px;
       width: 100%;
     }
     h2 {
@@ -48,13 +54,19 @@
       cursor: pointer;
       margin-top: 15px;
       width: 100%;
-    }
-    .btn-ad {
       background-color: #2481cc;
     }
-    .btn-claim {
-      background-color: #27ae60;
+    #player-container {
       display: none;
+      width: 100%;
+      max-width: 500px;
+      margin-top: 15px;
+    }
+    video {
+      width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      background: #000;
     }
     #status-box {
       display: none;
@@ -62,33 +74,42 @@
     }
   </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
-  <div class="box">
+  <!-- লক ও এড দেখার স্ক্রিন -->
+  <div class="box" id="lock-box">
     <h2>🎬 Video is Locked</h2>
-    <p id="info-text">You must view the sponsored ad for at least 15 seconds to unlock your video.</p>
+    <p>Please view the sponsored ad for at least 15 seconds to unlock and watch this video in HD.</p>
     
-    <!-- বাটন: এড দেখার জন্য -->
-    <button id="unlock-btn" class="btn-ad" onclick="startMonetagAd()">🔓 Watch Ad to Unlock Video</button>
-
-    <!-- স্ট্যাটাস এবং ওয়ার্নিং বক্স -->
+    <button id="unlock-btn" onclick="startMonetagAd()">🔓 Watch Ad to Play Video</button>
     <div id="status-box"></div>
+  </div>
 
-    <!-- ভিডিও পাওয়ার সবুজ বাটন -->
-    <button id="claim-btn" class="btn-claim" onclick="claimVideo()">✅ Verified! Get Your Video Now</button>
+  <!-- হাই-সিকিউরিটি ভিডিও প্লেয়ার (ডাউনলোড বাটন বন্ধ) -->
+  <div id="player-container">
+    <video id="videoPlayer" controls playsinline controlsList="nodownload noplaybackrate" disablePictureInPicture oncontextmenu="return false;">
+      <source id="videoSource" src="" type="video/mp4">
+      Your device does not support this video.
+    </video>
+    <p style="color: #27ae60; font-size: 13px; margin-top: 10px;">🔒 Protected Stream • Download & Forwarding Disabled</p>
   </div>
 
   <script>
+    // রাইট-ক্লিক ও শর্টকাট পুরোপুরি বন্ধ
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.onkeydown = function(e) {
+      if (e.keyCode == 123 || (e.ctrlKey && e.keyCode == 85)) return false;
+    };
+
     window.Telegram.WebApp.ready();
     window.Telegram.WebApp.expand();
 
     const urlParams = new URLSearchParams(window.location.search);
-    const fileId = urlParams.get('file');
+    const videoCode = urlParams.get('v');
 
     const MONETAG_LINK = "https://omg10.com/4/11942237";
-    const botUsername = "myvideostorage1_bot";
 
-    // ডেভেলপার আইডি: আপনার আইডিটি এখানে ১০০% সুরক্ষিত রাখা হয়েছে
+    // ডেভেলপার সেফটি: আপনার আইডি (6645146172)
     const currentUserId = window.Telegram.WebApp.initDataUnsafe?.user?.id;
     const isDeveloper = (currentUserId === 6645146172);
 
@@ -96,21 +117,18 @@
     let isWatching = false;
 
     function startMonetagAd() {
-      // আপনি (ডেভেলপার) দেখলে সরাসরি ভিডিও যাবে, কোনো এড লোড হবে না
+      // আপনি (ডেভেলপার) দেখলে সরাসরি প্লেয়ার চালু হবে
       if (isDeveloper) {
-        alert("Developer mode: Delivering video...");
-        claimVideo();
+        unlockAndPlay();
         return;
       }
 
-      // এডে যাওয়ার আসল সময় রেকর্ড
       adOpenedTime = Date.now();
       isWatching = true;
 
       // Monetag এড ওপেন হবে
       window.Telegram.WebApp.openLink(MONETAG_LINK);
 
-      // পেজে নোটিশ দেখানো
       document.getElementById('unlock-btn').style.display = 'none';
       const statusBox = document.getElementById('status-box');
       statusBox.style.display = 'block';
@@ -124,13 +142,12 @@
       `;
     }
 
-    // ইউজার যখন এডের পেজ থেকে ব্যাক করে ফিরে আসবে
     function onUserReturn() {
       if (!isWatching || !adOpenedTime) return;
 
       const timeSpent = Math.floor((Date.now() - adOpenedTime) / 1000);
 
-      // ইউজার যদি ১৫ সেকেন্ডের আগে ব্যাক করে ফেলে (ফাঁকিবাজি ধরা পড়লে)
+      // ১৫ সেকেন্ডের কম সময় কাটলে সাথে সাথে বাতিল
       if (timeSpent < 15) {
         isWatching = false;
         adOpenedTime = null;
@@ -148,20 +165,30 @@
           </div>
         `;
 
-        // আবার চেষ্টা করার বাটন দেখাবে
         const btn = document.getElementById('unlock-btn');
         btn.innerText = "🔄 Watch Ad Again (15s Required)";
         btn.style.display = "block";
 
       } else {
-        // ইউজার সফলভাবে পুরো ১৫ সেকেন্ড এডের পেজে ছিল
+        // সফলভাবে ১৫ সেকেন্ড দেখা শেষ হলে প্লেয়ার চালু হবে
         isWatching = false;
-        document.getElementById('status-box').style.display = 'none';
-        document.getElementById('claim-btn').style.display = 'block';
+        unlockAndPlay();
       }
     }
 
-    // এডের পেজ থেকে ফিরে আসার সাথে সাথে সেন্সর চালু হওয়া
+    function unlockAndPlay() {
+      document.getElementById('lock-box').style.display = 'none';
+      const playerContainer = document.getElementById('player-container');
+      const player = document.getElementById('videoPlayer');
+      const source = document.getElementById('videoSource');
+
+      // Catbox ডিরেক্ট লিংক লোড
+      source.src = `https://files.catbox.moe/${videoCode}.mp4`;
+      player.load();
+      playerContainer.style.display = 'block';
+      player.play();
+    }
+
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) {
         onUserReturn();
@@ -171,11 +198,6 @@
     window.addEventListener("focus", () => {
       onUserReturn();
     });
-
-    // ভিডিও নেওয়ার ফাংশন
-    function claimVideo() {
-      window.Telegram.WebApp.openTelegramLink(`https://t.me/${botUsername}?start=unlock_${fileId}`);
-    }
   </script>
 </body>
 </html>
